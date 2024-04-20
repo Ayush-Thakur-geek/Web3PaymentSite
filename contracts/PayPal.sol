@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-contract Paypal {
+contract PayPal {
     address private owner;
 
     constructor() {
@@ -9,7 +9,7 @@ contract Paypal {
     }
 
     struct request {
-        address requester;
+        address requestor;
         uint256 amount;
         string message;
         string name;
@@ -44,7 +44,7 @@ contract Paypal {
         string memory _message
     ) public {
         request memory newRequest;
-        newRequest.requester = msg.sender;
+        newRequest.requestor = msg.sender;
         newRequest.amount = _amount;
         newRequest.message = _message;
         if (names[msg.sender].hasName) {
@@ -61,11 +61,11 @@ contract Paypal {
         uint256 toPay = payableRequest.amount * 1000000000000000000;
         require(msg.value == toPay, "Incorrect amount");
 
-        payable(payableRequest.requester).transfer(msg.value);
+        payable(payableRequest.requestor).transfer(msg.value);
 
         addHistory(
             msg.sender,
-            payableRequest.requester,
+            payableRequest.requestor,
             payableRequest.amount,
             payableRequest.message
         );
@@ -112,5 +112,19 @@ contract Paypal {
             string[] memory,
             string[] memory
         )
-    {}
+    {
+        address[] memory addrs = new address[](requests[_user].length);
+        uint256[] memory amt = new uint256[](requests[_user].length);
+        string[] memory msge = new string[](requests[_user].length);
+        string[] memory nme = new string[](requests[_user].length);
+
+        for (uint i = 0; i < requests[_user].length; i++) {
+            request storage myRequests = requests[_user][i];
+            addrs[i] = myRequests.requestor;
+            amt[i] = myRequests.amount;
+            msge[i] = myRequests.message;
+            nme[i] = myRequests.name;
+        }
+        return (addrs, amt, msge, nme);
+    }
 }
